@@ -1,261 +1,275 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>本地图片浏览器</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>本地图片浏览器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            background: #111;
-            font-family: -apple-system, sans-serif;
-        }
+    body {
+      background: #111;
+      font-family: -apple-system, sans-serif;
+    }
 
-        .header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.9);
-            padding: 10px;
-            z-index: 1000;
-            display: flex;
-            gap: 8px;
-        }
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 10px;
+      z-index: 1000;
+      display: flex;
+      gap: 8px;
+    }
 
-        .input-group {
-            flex: 1;
-            display: flex;
-            background: #333;
-            border-radius: 20px;
-            overflow: hidden;
-        }
+    .input-group {
+      flex: 1;
+      display: flex;
+      background: #333;
+      border-radius: 20px;
+      overflow: hidden;
+    }
 
-        #jumpInput {
-            flex: 1;
-            padding: 8px 15px;
-            border: none;
-            background: transparent;
-            color: white;
-            font-size: 16px;
-        }
+    #jumpInput {
+      flex: 1;
+      padding: 8px 15px;
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 16px;
+    }
 
-        #imageType {
-            width: 80px;
-            padding: 8px;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            text-align: center;
-        }
+    #imageType {
+      width: 80px;
+      padding: 8px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      text-align: center;
+    }
 
-        #jumpButton {
-            padding: 8px 20px;
-            background: #007AFF;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
+    #jumpButton {
+      padding: 8px 20px;
+      background: #007AFF;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
 
-        #jumpButton:active {
-            opacity: 0.7;
-        }
+    #jumpButton:active {
+      opacity: 0.7;
+    }
 
-        .container {
-            margin-top: 60px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+    .container {
+      margin-top: 60px;
+      /* max-width: 800px;
+      margin-left: auto;
+      margin-right: auto; */
+      width: 100%;
+    }
 
-        .image-item {
-            width: 100%;
-            background: #000;
-        }
+    .image-item {
+      width: 100%;
+      background: #000;
+    }
 
-        .lazy-image {
-            width: 100%;
-            height: auto;
-            display: block;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
+    .lazy-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
 
-        .loaded {
-            opacity: 1;
-        }
-    </style>
+    .loaded {
+      opacity: 1;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="header">
-        <div class="input-group">
-            <input 
-                type="number" 
-                id="jumpInput" 
-                placeholder="输入图片序号"
-                min="1"
-                :max="config.totalImages"
-            >
-        </div>
-        <input 
-            type="text" 
-            id="imageType" 
-            placeholder="格式"
-            value="png"
-            maxlength="4"
-        >
-        <button id="jumpButton">查看</button>
+  <div class="header">
+    <div class="input-group">
+      <input type="number" id="jumpInput" placeholder="输入图片序号" min="1" :max="config.totalImages">
+      <input type="number" id="totalImages" placeholder="输入图片序号" min="1" value="1000">
     </div>
-    <div class="container" id="imageContainer"></div>
+    <input type="text" id="imageType" placeholder="格式" value="png" maxlength="4">
+    <button id="jumpButton">查看</button>
+  </div>
+  <div class="container" id="imageContainer"></div>
 
-    <script>
-        // 配置参数
-        const config = {
-    totalImages: 1000,
-    preloadPages: 3,  // 扩大预加载范围
-    rootMargin: '500px 0px',  // 增加预加载距离
-    currentType: 'png'
-};
+  <script>
+    // 配置参数
+    const config = {
+      totalImages: 1000,
+      preloadPages: 3,  // 扩大预加载范围
+      rootMargin: '500px 0px',  // 增加预加载距离
+      currentType: 'png',
+      currentPage:1,
+    };
 
-        // DOM元素
-        const container = document.getElementById('imageContainer');
-        const jumpInput = document.getElementById('jumpInput');
-        const jumpButton = document.getElementById('jumpButton');
-        const imageType = document.getElementById('imageType');
+    // DOM元素
+    const container = document.getElementById('imageContainer');
+    const jumpInput = document.getElementById('jumpInput');
+    const jumpButton = document.getElementById('jumpButton');
+    const imageType = document.getElementById('imageType');
+    const totalImagesDom = document.getElementById('totalImages');
 
-        // 创建图片元素
-        function createImageItem(index) {
-            const div = document.createElement('div');
-            div.className = 'image-item';
-            div.id = `img-${index}`;
-            
-            const img = new Image();
-            img.className = 'lazy-image';
-            img.dataset.src = `${index}.${config.currentType}`;
-            img.alt = `图片${index}`;
-            
-            img.onload = () => {
-                img.classList.add('loaded');
-                div.style.background = 'none';
-            };
-            
-            img.onerror = () => div.remove();
-            
-            div.appendChild(img);
-            return div;
+    // 创建图片元素
+    function createImageItem(index) {
+      const div = document.createElement('div');
+      div.className = 'image-item';
+      div.id = `img-${index}`;
+
+      const img = new Image();
+      img.className = 'lazy-image';
+      img.dataset.src = `${index}.${config.currentType}`;
+      img.alt = `图片${index}`;
+
+      img.onload = () => {
+        img.classList.add('loaded');
+        div.style.background = 'none';
+      };
+
+      // img.onerror = () => div.remove();
+
+      div.appendChild(img);
+      return div;
+    }
+
+    // 修该图片总数
+    function updateTotalImages(newTotal) {
+      if (!newTotal) {
+        alert('请输入图片总数');
+        return;
+      }
+      if (config.totalImages < newTotal) {
+        const fragment = document.createDocumentFragment();
+        for (let i = config.totalImages + 1; i <= newTotal; i++) {
+          const item = createImageItem(i);
+          fragment.appendChild(item);
+          observer.observe(item);
         }
-
-// 更新所有图片格式（优化版）
-function updateAllImageTypes(newType) {
-    config.currentType = newType;
-    document.querySelectorAll('.lazy-image').forEach(img => {
+        container.appendChild(fragment);
+      }
+      config.totalImages = parseInt(newTotal) || 1000;
+      totalImages.value = config.totalImages;
+    }
+    // 更新所有图片格式（优化版）
+    function updateAllImageTypes(newType) {
+      config.currentType = newType;
+      document.querySelectorAll('.lazy-image').forEach(img => {
         const index = img.parentElement.id.split('-')[1];
         const newSrc = `${index}.${newType}`;
-        
+
         // 强制更新所有图片路径
         img.dataset.src = newSrc;
-        
+
         // 重置所有已加载图片
         if (img.src) {
-            img.removeAttribute('src');
-            img.classList.remove('loaded');
-            // 重新加入观察队列
-            observer.unobserve(img.parentElement);
-            observer.observe(img.parentElement);
+          img.removeAttribute('src');
+          img.classList.remove('loaded');
+          // 重新加入观察队列
+          observer.unobserve(img.parentElement);
+          observer.observe(img.parentElement);
         }
-    });
-}
-        // 核心跳转功能
-        function jumpToImage() {
-          // 处理格式输入
-    const newType = (imageType.value.replace(/[^a-zA-Z]/g, '').toLowerCase() || 'png');
-    if (newType !== config.currentType) {
-        updateAllImageTypes(newType);
+      });
     }
+    // 核心跳转功能
+    function jumpToImage() {
+      updateTotalImages(totalImagesDom.value)
+      // 处理格式输入
+      const newType = (imageType.value.replace(/[^a-zA-Z]/g, '').toLowerCase() || 'png');
+      if (newType !== config.currentType) {
+        updateAllImageTypes(newType);
+      }
 
-    // 处理序号输入
-    let targetIndex = parseInt(jumpInput.value) || 1;
-    targetIndex = Math.max(1, Math.min(config.totalImages, targetIndex));
+      // 处理序号输入
+      let targetIndex = parseInt(jumpInput.value) || 1;
+      targetIndex = Math.max(1, Math.min(config.totalImages, targetIndex));
 
-    // 强制预加载目标区域
-    const preloadStart = Math.max(1, targetIndex - config.preloadPages * 2);
-    const preloadEnd = Math.min(config.totalImages, targetIndex + config.preloadPages * 2);
-    for (let i = preloadStart; i <= preloadEnd; i++) {
+      // 强制预加载目标区域
+      const preloadStart = Math.max(1, targetIndex - config.preloadPages * 2);
+      const preloadEnd = Math.min(config.totalImages, targetIndex + config.preloadPages * 2);
+      for (let i = preloadStart; i <= preloadEnd; i++) {
         const imgItem = document.getElementById(`img-${i}`);
         if (imgItem) {
-            const img = imgItem.querySelector('img');
-            // 强制立即加载目标区域图片
-            if (!img.src) {
-                img.src = img.dataset.src;
-                observer.unobserve(imgItem);
-            }
+          const img = imgItem.querySelector('img');
+          // 强制立即加载目标区域图片
+          if (!img.src) {
+            img.src = img.dataset.src;
+            observer.unobserve(imgItem);
+          }
         }
-    }
+      }
 
-    // 执行滚动
-    const targetElement = document.getElementById(`img-${targetIndex}`);
-    if (targetElement) {
+      // 执行滚动
+      const targetElement = document.getElementById(`img-${targetIndex}`);
+      if (targetElement) {
         targetElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
+          behavior: 'smooth',
+          block: 'start'
         });
+      }
+      jumpInput.value = '';
     }
-    jumpInput.value = '';
-        }
 
-        // 初始化观察者
-        const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+    // 初始化观察者
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
         if (entry.isIntersecting) {
-            const img = entry.target.querySelector('img');
-            if (img && !img.src) {
-                // 验证当前路径是否匹配最新格式
-                const expectedSrc = `${img.parentElement.id.split('-')[1]}.${config.currentType}`;
-                if (img.dataset.src !== expectedSrc) {
-                    img.dataset.src = expectedSrc;
-                }
-                
-                // 强制加载机制
-                img.src = img.dataset.src;
-                observer.unobserve(entry.target);
+          const img = entry.target.querySelector('img');
+          if (img && !img.src) {
+            // 验证当前路径是否匹配最新格式
+            const expectedSrc = `${img.parentElement.id.split('-')[1]}.${config.currentType}`;
+            if (img.dataset.src !== expectedSrc) {
+              img.dataset.src = expectedSrc;
             }
+
+            // 强制加载机制
+            img.src = img.dataset.src;
+            observer.unobserve(entry.target);
+          }
         }
+      });
+    }, {
+      root: null,
+      rootMargin: config.rootMargin,
+      threshold: 0.01
     });
-}, {
-    root: null,
-    rootMargin: config.rootMargin,
-    threshold: 0.01
-});
-        // 初始化图片列表
-        (function init() {
-            const fragment = document.createDocumentFragment();
-            for (let i = 1; i <= config.totalImages; i++) {
-                const item = createImageItem(i);
-                fragment.appendChild(item);
-                observer.observe(item);
-            }
-            container.appendChild(fragment);
-        })();
+    // 初始化图片列表
+    (function init() {
+      const fragment = document.createDocumentFragment();
+      for (let i = 1; i <= config.totalImages; i++) {
+        const item = createImageItem(i);
+        fragment.appendChild(item);
+        observer.observe(item);
+      }
+      container.appendChild(fragment);
+    })();
 
-        // 事件监听
-        jumpButton.addEventListener('click', jumpToImage);
-        jumpInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') jumpToImage();
-        });
+    // 事件监听
+    jumpButton.addEventListener('click', jumpToImage);
+    jumpInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') jumpToImage();
+    });
 
-        // 输入验证
-        jumpInput.addEventListener('input', (e) => {
-            let value = parseInt(e.target.value) || 1;
-            value = Math.max(1, Math.min(config.totalImages, value));
-            e.target.value = value;
-        });
-    </script>
+    // 输入验证
+    jumpInput.addEventListener('input', (e) => {
+      let value = parseInt(e.target.value) || 1;
+      value = Math.max(1, Math.min(config.totalImages, value));
+      e.target.value = value;
+    });
+  </script>
 </body>
+
 </html>
