@@ -36,8 +36,10 @@
       overflow: hidden;
     }
 
-    #jumpInput {
-      flex: 1;
+    #jumpInput,
+    #totalImages {
+      flex: none;
+      width: 50%;
       padding: 8px 15px;
       border: none;
       background: transparent;
@@ -99,8 +101,8 @@
 <body>
   <div class="header">
     <div class="input-group">
-      <input type="number" id="jumpInput" placeholder="输入图片序号" min="1" :max="config.totalImages">
-      <input type="number" id="totalImages" placeholder="输入图片序号" min="1" value="1000">
+      <input type="number" id="jumpInput" placeholder="序号" min="1" :max="config.totalImages">
+      <input type="number" id="totalImages" placeholder="总数" min="1" value="1000">
     </div>
     <input type="text" id="imageType" placeholder="格式" value="png" maxlength="4">
     <button id="jumpButton">查看</button>
@@ -114,7 +116,7 @@
       preloadPages: 3,  // 扩大预加载范围
       rootMargin: '500px 0px',  // 增加预加载距离
       currentType: 'png',
-      currentPage:1,
+      currentPage: 1,
     };
 
     // DOM元素
