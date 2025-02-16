@@ -224,6 +224,26 @@
       }
       jumpInput.value = '';
     }
+    // 更新网页标题函数
+    function updatePageTitle(entries) {
+      // 找到第一个进入视口的图片
+      const visibleImage = entries.find(entry => entry.isIntersecting);
+      if (visibleImage) {
+        const img = visibleImage.target.querySelector('img');
+        if (img && img.alt) {
+          document.title = img.alt; // 更新网页标题为图片的alt属性
+        }
+      }
+    }
+
+    // 初始化标题观察者
+    const titleObserver = new IntersectionObserver((entries) => {
+      updatePageTitle(entries);
+    }, {
+      root: null, // 视口
+      rootMargin: '0px',
+      threshold: 0.5 // 图片至少50%可见时触发
+    });
 
     // 初始化观察者
     const observer = new IntersectionObserver((entries) => {
@@ -254,7 +274,8 @@
       for (let i = 1; i <= config.totalImages; i++) {
         const item = createImageItem(i);
         fragment.appendChild(item);
-        observer.observe(item);
+        observer.observe(item); // 懒加载观察者
+        titleObserver.observe(item); // 标题观察者
       }
       container.appendChild(fragment);
     })();
